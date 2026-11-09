@@ -16,20 +16,21 @@
 #define GREEN         	 0x07E0
 #define CYAN          	 0x7FFF
 #define YELLOW        	 0xFFE0
-#define BROWN 			 0XBC40 //��ɫ
-#define BRRED 			 0XFC07 //�غ�ɫ
-#define GRAY  			 0X8430 //��ɫ
-#define DARKBLUE      	 0X01CF	//����ɫ
-#define LIGHTBLUE      	 0X7D7C	//ǳ��ɫ  
-#define GRAYBLUE       	 0X5458 //����ɫ
+#define BROWN 			 0XBC40 //×ØÉ«
+#define BRRED 			 0XFC07 //×ØºìÉ«
+#define GRAY  			 0X8430 //»ÒÉ«
+#define DARKBLUE      	 0X01CF	//ÉîÀ¶É«
+#define LIGHTBLUE      	 0X7D7C	//Ç³À¶É«  
+#define GRAYBLUE       	 0X5458 //»ÒÀ¶É«
 
 extern ST7735_Object_t st7735_pObj;
 extern uint32_t st7735_id;
 
-extern uint16_t POINT_COLOR;	//������ɫ
-extern uint16_t BACK_COLOR;  //����ɫ 
+extern uint16_t POINT_COLOR;	//»­±ÊÑÕÉ«
+extern uint16_t BACK_COLOR;  //±³¾°É« 
 
 void LCD_Test(void);
+void LCD_InitSensors(void);
 void LCD_SetBrightness(uint32_t Brightness);
 uint32_t LCD_GetBrightness(void);
 void LCD_Light(uint32_t Brightness_Dis,uint32_t time);
