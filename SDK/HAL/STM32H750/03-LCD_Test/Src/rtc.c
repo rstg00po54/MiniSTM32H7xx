@@ -72,7 +72,7 @@ void MX_RTC_Init(void)
 		 HAL_Delay(10-1);
 		 HAL_GPIO_WritePin(E3_GPIO_Port,E3_Pin,GPIO_PIN_RESET);
     }
-    /* Check if Pin Reset flag is set °´ÏÂ¸´Î»¼ü*/
+    /* Check if Pin Reset flag is set ï¿½ï¿½ï¿½Â¸ï¿½Î»ï¿½ï¿½*/
     if (__HAL_RCC_GET_FLAG(RCC_FLAG_PINRST) != RESET)
     {
       /* Turn on LED1: External reset occurred */
@@ -86,7 +86,7 @@ void MX_RTC_Init(void)
     }
     /* Clear source Reset Flag */
     __HAL_RCC_CLEAR_RESET_FLAGS();
-	 /* return ²»Ö´ÐÐÏÂÃæ´úÂë */
+	 /* return ï¿½ï¿½Ö´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ */
 	 return;
   }
   /* USER CODE END Check_RTC_BKUP */

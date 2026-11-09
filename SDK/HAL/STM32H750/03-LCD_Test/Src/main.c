@@ -120,7 +120,7 @@ static void LED_Blink(uint32_t Hdelay,uint32_t Ldelay)
   */
 static void RTC_CalendarShow(RTC_DateTypeDef *sdatestructureget,RTC_TimeTypeDef *stimestructureget)
 {
-  /* ±ØÐëÍ¬Ê±»ñÈ¡Ê±¼äºÍÈÕÆÚ ²»È»»áµ¼ÖÂÏÂ´ÎRTC²»ÄÜ¶ÁÈ¡ */
+  /* ï¿½ï¿½ï¿½ï¿½Í¬Ê±ï¿½ï¿½È¡Ê±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È»ï¿½áµ¼ï¿½ï¿½ï¿½Â´ï¿½RTCï¿½ï¿½ï¿½Ü¶ï¿½È¡ */
   /* Both time and date must be obtained or RTC cannot be read next time */
   /* Get the RTC current Time */
   HAL_RTC_GetTime(&hrtc, stimestructureget, RTC_FORMAT_BIN);
