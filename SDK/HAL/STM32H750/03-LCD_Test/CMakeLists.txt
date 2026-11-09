@@ -44,17 +44,23 @@ target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE
 
 # Add sources to executable
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE
-    # Add user sources here
+    Src/sensor_test.c
+    Drivers/BSP/ST7735/lcd.c
+    Drivers/BSP/ST7735/st7735.c
+    Drivers/BSP/ST7735/st7735_reg.c
+    # Small internal-FLASH build: deliberately omit large logo C arrays
 )
 
 # Add include paths
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
-    # Add user defined include paths
+    ${CMAKE_CURRENT_SOURCE_DIR}/Inc
+    ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/BSP/ST7735
 )
 
 # Add project symbols (macros)
 target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE
-    # Add user defined symbols
+    TFT96
+    LCD_SENSOR_MODE
 )
 
 # Remove wrong libob.a library dependency when using cpp files
