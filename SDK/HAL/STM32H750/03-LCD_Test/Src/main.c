@@ -27,6 +27,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "lcd.h"
+#include "sensor_test.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -168,34 +169,19 @@ int main(void)
   MX_SPI4_Init();
   MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
-//	HAL_TIMEx_PWMN_Start(&htim1,TIM_CHANNEL_2);
-//	__HAL_TIM_SetCompare(&htim1,TIM_CHANNEL_2,10);
-	LCD_Test();
+  LCD_InitSensors();
+  SensorTest_Init();
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-	uint8_t text[20];
-	RTC_DateTypeDef sdatestructureget;
-	RTC_TimeTypeDef stimestructureget;
   while (1)
   {
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-		RTC_CalendarShow(&sdatestructureget,&stimestructureget);
-		
-		if (stimestructureget.Seconds % 2 == 1)
-			sprintf((char *)&text,"Time: %02d:%02d", stimestructureget.Hours, stimestructureget.Minutes);
-		else
-			sprintf((char *)&text,"Time: %02d %02d", stimestructureget.Hours, stimestructureget.Minutes);
-		LCD_ShowString(4, 58, 160, 16, 16, text);
-		
-		sprintf((char *)&text,"Tick: %d ms",HAL_GetTick());
-		LCD_ShowString(4, 74, 160, 16, 16,text);
-		
-		LED_Blink(3,500);
-		
+    SensorTest_Update();
+    HAL_Delay(750);
   }
   /* USER CODE END 3 */
 }
