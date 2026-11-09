@@ -30,14 +30,14 @@ static int32_t lcd_senddata(uint8_t* pdata,uint32_t length);
 static int32_t lcd_recvdata(uint8_t* pdata,uint32_t length);
 
 ST7735_IO_t st7735_pIO = {
-	lcd_init,
-	NULL,
-	NULL,
-	lcd_writereg,
-	lcd_readreg,
-	lcd_senddata,
-	lcd_recvdata,
-	lcd_gettick
+	.Init     = lcd_init,
+	.DeInit   = NULL,
+	.Address  = 0U,
+	.WriteReg = lcd_writereg,
+	.ReadReg  = lcd_readreg,
+	.SendData = lcd_senddata,
+	.RecvData = lcd_recvdata,
+	.GetTick  = lcd_gettick
 };
 
 ST7735_Object_t st7735_pObj;
