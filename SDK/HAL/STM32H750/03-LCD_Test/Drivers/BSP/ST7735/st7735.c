@@ -66,9 +66,9 @@ ST7735_LCD_Drv_t   ST7735_LCD_Driver =
 static uint32_t OrientationTab[4][2] =
 {
   {0x40U , 0xC0U}, /* Portrait orientation choice of LCD screen               */
-  {0x80U , 0x00U}, /* Portrait rotated 180° orientation choice of LCD screen  */
+  {0x80U , 0x00U}, /* Portrait rotated 180Â° orientation choice of LCD screen  */
   {0x20U , 0x60U}, /* Landscape orientation choice of LCD screen              */
-  {0xE0U , 0xA0U}  /* Landscape rotated 180° orientation choice of LCD screen */
+  {0xE0U , 0xA0U}  /* Landscape rotated 180Â° orientation choice of LCD screen */
 };
 
 ST7735_Ctx_t ST7735Ctx;
@@ -238,7 +238,7 @@ int32_t ST7735_Init(ST7735_Object_t *pObj, uint32_t ColorCoding, ST7735_Ctx_t *p
 
 		/* choose panel*/
 		if (pDriver->Panel == HannStar_Panel) {
-			ret += st7735_write_reg(&pObj->Ctx, ST7735_DISPLAY_INVERSION_ON, &tmp, 0);
+			ret += st7735_write_reg(&pObj->Ctx, ST7735_DISPLAY_INVERSION_OFF, &tmp, 0);
 		} else {
 			ret += st7735_write_reg(&pObj->Ctx, ST7735_DISPLAY_INVERSION_OFF, &tmp, 0);
 		}
