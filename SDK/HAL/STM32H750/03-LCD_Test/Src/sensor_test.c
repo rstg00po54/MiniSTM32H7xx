@@ -7,6 +7,7 @@
  * Both lines need pull-up resistors to the sensors' I/O voltage (3.3V).
  */
 #include "sensor_test.h"
+#include "debug_uart.h"
 #include "lcd.h"
 #include "main.h"
 #include <stdbool.h>
@@ -200,6 +201,11 @@ static void line(uint16_t y, const char *text)
     char padded[21];
     /* The 0.96-inch panel is 160 px wide: 20 glyphs at 8 px each. */
     (void)snprintf(padded, sizeof padded, "%-20.20s", text);
+    /* Mirror LCD diagnostic lines to serial for troubleshooting. */
+    char serial[88];
+    (void)snprintf(serial, sizeof serial, "[LCD y=%u] %s\r\n",
+                   (unsigned)y, text);
+    DebugUart_Print(serial);
     LCD_ShowString(0, y, 160, 16, 16, (uint8_t *)padded);
 }
 

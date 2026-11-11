@@ -28,6 +28,8 @@
 /* USER CODE BEGIN Includes */
 #include "lcd.h"
 #include "sensor_test.h"
+#include "debug_uart.h"
+#include <stdio.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -169,8 +171,21 @@ int main(void)
   MX_SPI4_Init();
   MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
+  DebugUart_Init();
+  DebugUart_Print("\r\n[H750] USART1 PA9(TX)/PA10(RX), 115200 8N1\r\n");
+  {
+    char clock_text[112];
+    (void)snprintf(clock_text, sizeof(clock_text),
+                   "[CLOCK] HSE=12000000 SYSCLK=%lu HCLK=%lu PCLK2=%lu Hz\r\n",
+                   (unsigned long)HAL_RCC_GetSysClockFreq(),
+                   (unsigned long)HAL_RCC_GetHCLKFreq(),
+                   (unsigned long)HAL_RCC_GetPCLK2Freq());
+    DebugUart_Print(clock_text);
+  }
   LCD_InitSensors();
   SensorTest_Init();
+  uint32_t next_sensor_tick = HAL_GetTick();
+  uint32_t last_heartbeat = HAL_GetTick();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -180,8 +195,23 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    SensorTest_Update();
-    HAL_Delay(750);
+    uint32_t now = HAL_GetTick();
+    if ((int32_t)(now - next_sensor_tick) >= 0)
+    {
+      SensorTest_Update();
+      next_sensor_tick = HAL_GetTick() + 750U;
+    }
+    if ((uint32_t)(HAL_GetTick() - last_heartbeat) >= 1000U)
+    {
+      last_heartbeat = HAL_GetTick();
+      char heartbeat[64];
+      (void)snprintf(heartbeat, sizeof(heartbeat),
+                     "[UART] alive uptime=%lu ms\r\n",
+                     (unsigned long)last_heartbeat);
+      DebugUart_Print(heartbeat);
+    }
+    DebugUart_PollEcho();
+    HAL_Delay(2);
   }
   /* USER CODE END 3 */
 }
@@ -223,8 +253,8 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.LSEState = RCC_LSE_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
-  RCC_OscInitStruct.PLL.PLLM = 5;
-  RCC_OscInitStruct.PLL.PLLN = 96;
+  RCC_OscInitStruct.PLL.PLLM = 3;
+  RCC_OscInitStruct.PLL.PLLN = 120;
   RCC_OscInitStruct.PLL.PLLP = 2;
   RCC_OscInitStruct.PLL.PLLQ = 2;
   RCC_OscInitStruct.PLL.PLLR = 2;
