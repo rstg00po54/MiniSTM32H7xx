@@ -107,3 +107,19 @@ PB14/PB15 are shared with OTG_HS DM/DP. If used as USART1 they cannot
 simultaneously be USB OTG_HS data pins. This example initializes USART1 via
 registers, without HAL UART; review UART configuration/dependencies before
 regenerating code from CubeMX.
+
+## Sensor diagnosis over UART
+
+At 115200 baud, the LCD mirrors `SHT30:ACK 0x45` only when the I2C address
+ACKs; this is not yet a valid reading. Failed measurements are now separated:
+
+- `[SHT] READ FAIL at command/read ...`: I2C START or address/command NACK
+- `[SHT] CRC FAIL raw=... expected=... received=...`: all 6 bytes were read,
+  but temperature/humidity CRC checks did not match
+- `MPU6050: NOT FOUND`: no response to 0x68 or 0x69; verify MPU6050 soldering,
+  power, AD0 wiring and shared PB10/PB11 pull-ups
+
+The existing SHT3x command (0x2400), 20 ms conversion wait, and CRC-8
+polynomial (0x31, init 0xFF) are unchanged. Do not suppress CRC checking to
+make a broken I2C link look successful. With weak/internal-only pull-ups or
+incorrect wiring, a sensor may ACK its address while returning corrupt data.

@@ -166,30 +166,60 @@ static uint8_t sht_crc(const uint8_t *data, unsigned count)
     return crc;
 }
 
-static bool sht_read(uint8_t address, int32_t *temp_centi, int32_t *rh_tenths)
+/* Preserve the failing transaction stage and raw bytes for UART diagnostics.
+ * An address ACK alone is not proof of a good SHT30 measurement. */
+typedef struct {
+    const char *stage;
+    uint8_t bytes[6];
+    uint8_t expected_temp_crc;
+    uint8_t expected_rh_crc;
+    bool raw_valid;
+} ShtReadDiag;
+
+static bool sht_read(uint8_t address, int32_t *temp_centi,
+                     int32_t *rh_tenths, ShtReadDiag *diag)
 {
     bool ok = false;
-    uint8_t bytes[6];
+    uint8_t bytes[6] = {0};
+    diag->raw_valid = false;
+    diag->stage = "command START";
+
     /* Single-shot, high repeatability, clock stretching disabled (0x2400). */
     if (!i2c_start()) goto done;
+    diag->stage = "command address NACK";
     if (!i2c_write_byte((uint8_t)(address << 1))) goto done;
+    diag->stage = "command 0x24 NACK";
     if (!i2c_write_byte(0x24U)) goto done;
+    diag->stage = "command 0x00 NACK";
     if (!i2c_write_byte(0x00U)) goto done;
     i2c_stop();
+
     HAL_Delay(20);
+    diag->stage = "read START";
     if (!i2c_start()) goto done;
+    diag->stage = "read address NACK";
     if (!i2c_write_byte((uint8_t)((address << 1) | 1U))) goto done;
+
+    /* The current software-I2C byte reader does not report SCL timeouts.
+     * A malformed frame will be identified via the two CRC checks below. */
     for (unsigned i = 0; i < 6U; ++i) {
         bytes[i] = i2c_read_byte(i != 5U);
+        diag->bytes[i] = bytes[i];
     }
-    if (sht_crc(bytes, 2U) != bytes[2] ||
-        sht_crc(&bytes[3], 2U) != bytes[5]) goto done;
+    diag->raw_valid = true;
+    diag->expected_temp_crc = sht_crc(bytes, 2U);
+    diag->expected_rh_crc = sht_crc(&bytes[3], 2U);
+    diag->stage = "CRC mismatch";
+    if (diag->expected_temp_crc != bytes[2] ||
+        diag->expected_rh_crc != bytes[5]) goto done;
+
     {
         uint32_t rt = ((uint32_t)bytes[0] << 8) | bytes[1];
         uint32_t rh = ((uint32_t)bytes[3] << 8) | bytes[4];
         *temp_centi = -4500 + (int32_t)((17500U * rt + 32767U) / 65535U);
         *rh_tenths = (int32_t)((1000U * rh + 32767U) / 65535U);
     }
+    diag->stage = "OK";
     ok = true;
 done:
     i2c_stop();
@@ -290,10 +320,29 @@ void SensorTest_Update(void)
         line(64, "T:--.-C H:--.-%");
     } else {
         int32_t temp = 0, rh = 0;
-        (void)snprintf(msg, sizeof msg, "SHT30:OK 0x%02X", sht);
+        ShtReadDiag diag = {0};
+        (void)snprintf(msg, sizeof msg, "SHT30:ACK 0x%02X", sht);
         line(48, msg);
-        if (!sht_read(sht, &temp, &rh)) {
-            line(64, "SHT CRC/READ ERROR");
+        if (!sht_read(sht, &temp, &rh, &diag)) {
+            char log_line[170];
+            if (diag.raw_valid) {
+                line(64, "SHT30 CRC ERROR");
+                (void)snprintf(log_line, sizeof log_line,
+                    "[SHT] CRC FAIL raw=%02X %02X %02X %02X %02X %02X"
+                    " expected=%02X,%02X received=%02X,%02X\r\n",
+                    diag.bytes[0], diag.bytes[1], diag.bytes[2],
+                    diag.bytes[3], diag.bytes[4], diag.bytes[5],
+                    diag.expected_temp_crc, diag.expected_rh_crc,
+                    diag.bytes[2], diag.bytes[5]);
+            } else {
+                line(64, "SHT30 READ ERROR");
+                (void)snprintf(log_line, sizeof log_line,
+                    "[SHT] READ FAIL at %s; SCL=%u SDA=%u\r\n",
+                    diag.stage,
+                    (unsigned)(HAL_GPIO_ReadPin(I2C_PORT, SCL_PIN) == GPIO_PIN_SET),
+                    (unsigned)(HAL_GPIO_ReadPin(I2C_PORT, SDA_PIN) == GPIO_PIN_SET));
+            }
+            DebugUart_Print(log_line);
         } else {
             int32_t abs_temp = temp < 0 ? -temp : temp;
             (void)snprintf(msg, sizeof msg, "T:%s%ld.%02ldC H:%ld.%01ld%%",
