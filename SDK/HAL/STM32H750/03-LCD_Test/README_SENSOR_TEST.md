@@ -85,3 +85,20 @@ python3 -m serial.tools.miniterm /dev/ttyUSB0 115200
 The 12 MHz setting applies to this example only; other 25 MHz reference-board
 examples in the repository have not been changed. Physical hardware testing
 and a complete ARM cross-compilation are still required.
+
+## Faster LCD startup (RTC/LSE disabled)
+
+The sensor/LCD diagnostic does not use the calendar or RTC. Previously,
+`SystemClock_Config()` enabled the external 32.768 kHz LSE and
+`MX_RTC_Init()` ran before the LCD; if LSE was not ready, the HAL would wait
+up to `LSE_STARTUP_TIMEOUT=5000ms` (plus error-handler delays). This example
+now starts only HSE + PLL1 and skips the unused RTC.
+
+USART1 prints a `[BOOT]` uptime timestamp, `[LCD]` initialization duration,
+and sensor status. The ST7735 driver itself retains two required 120 ms
+initialization delays; a ~0.25 s panel setup is expected. If the LCD still
+takes seconds, capture the boot timestamps to identify the slow stage.
+
+RTC capability is not disabled at the silicon level; this diagnostic
+application simply does not initialize it. The other repository examples
+are unaffected.

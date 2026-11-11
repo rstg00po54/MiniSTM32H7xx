@@ -19,7 +19,6 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "rtc.h"
 #include "spi.h"
 #include "tim.h"
 #include "gpio.h"
@@ -116,21 +115,6 @@ static void LED_Blink(uint32_t Hdelay,uint32_t Ldelay)
 	HAL_Delay(Ldelay-1);
 }
 
-/**
-  * @brief  Get the current time and date.
-  * @param  
-  * @retval None
-  */
-static void RTC_CalendarShow(RTC_DateTypeDef *sdatestructureget,RTC_TimeTypeDef *stimestructureget)
-{
-  /* ����ͬʱ��ȡʱ������� ��Ȼ�ᵼ���´�RTC���ܶ�ȡ */
-  /* Both time and date must be obtained or RTC cannot be read next time */
-  /* Get the RTC current Time */
-  HAL_RTC_GetTime(&hrtc, stimestructureget, RTC_FORMAT_BIN);
-  /* Get the RTC current Date */
-  HAL_RTC_GetDate(&hrtc, sdatestructureget, RTC_FORMAT_BIN);
-}
-
 /* USER CODE END 0 */
 
 /**
@@ -167,11 +151,17 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_RTC_Init();
   MX_SPI4_Init();
   MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
   DebugUart_Init();
+  {
+    char boot_line[80];
+    (void)snprintf(boot_line, sizeof boot_line,
+                   "[BOOT] reached UART initialization at %lu ms\r\n",
+                   (unsigned long)HAL_GetTick());
+    DebugUart_Print(boot_line);
+  }
   DebugUart_Print("\r\n[H750] USART1 PA9(TX)/PA10(RX), 115200 8N1\r\n");
   {
     char clock_text[112];
@@ -182,7 +172,17 @@ int main(void)
                    (unsigned long)HAL_RCC_GetPCLK2Freq());
     DebugUart_Print(clock_text);
   }
+  DebugUart_Print("[BOOT] initializing ST7735...\r\n");
+  const uint32_t lcd_start_tick = HAL_GetTick();
   LCD_InitSensors();
+  {
+    char lcd_line[90];
+    (void)snprintf(lcd_line, sizeof lcd_line,
+                   "[LCD] ready, init=%lu ms, uptime=%lu ms\r\n",
+                   (unsigned long)(HAL_GetTick() - lcd_start_tick),
+                   (unsigned long)HAL_GetTick());
+    DebugUart_Print(lcd_line);
+  }
   SensorTest_Init();
   uint32_t next_sensor_tick = HAL_GetTick();
   uint32_t last_heartbeat = HAL_GetTick();
@@ -240,17 +240,11 @@ void SystemClock_Config(void)
 
   while(!__HAL_PWR_GET_FLAG(PWR_FLAG_VOSRDY)) {}
 
-  /** Configure LSE Drive Capability
-  */
-  HAL_PWR_EnableBkUpAccess();
-  __HAL_RCC_LSEDRIVE_CONFIG(RCC_LSEDRIVE_MEDIUMHIGH);
-
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE|RCC_OSCILLATORTYPE_LSE;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
   RCC_OscInitStruct.HSEState = RCC_HSE_ON;
-  RCC_OscInitStruct.LSEState = RCC_LSE_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
   RCC_OscInitStruct.PLL.PLLM = 3;
