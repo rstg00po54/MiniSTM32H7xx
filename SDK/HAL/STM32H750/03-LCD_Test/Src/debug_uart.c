@@ -1,6 +1,6 @@
 /* Minimal STM32H750 USART1 diagnostic UART: no HAL UART driver dependency.
  * 12 MHz HSE -> PLL1 SYSCLK=240 MHz, APB2/PCLK2=120 MHz.
- * USART1 kernel clock remains the default PCLK2.
+ * USART1 TX=PB14 and RX=PB15 (AF4); kernel clock defaults to PCLK2.
  */
 #include "debug_uart.h"
 #include "stm32h7xx_hal.h"
@@ -15,15 +15,15 @@ void DebugUart_Init(void)
     GPIO_InitTypeDef pins = {0};
     debug_uart_ready = 0U;
 
-    __HAL_RCC_GPIOA_CLK_ENABLE();
+    __HAL_RCC_GPIOB_CLK_ENABLE();
     __HAL_RCC_USART1_CLK_ENABLE();
 
-    pins.Pin = GPIO_PIN_9 | GPIO_PIN_10;
+    pins.Pin = GPIO_PIN_14 | GPIO_PIN_15;
     pins.Mode = GPIO_MODE_AF_PP;
     pins.Pull = GPIO_PULLUP;
     pins.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-    pins.Alternate = GPIO_AF7_USART1;
-    HAL_GPIO_Init(GPIOA, &pins);
+    pins.Alternate = GPIO_AF4_USART1;
+    HAL_GPIO_Init(GPIOB, &pins);
 
     /* Disable before changing framing, prescaler and baud rate. */
     USART1->CR1 = 0U;

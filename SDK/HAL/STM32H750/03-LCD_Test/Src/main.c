@@ -162,7 +162,7 @@ int main(void)
                    (unsigned long)HAL_GetTick());
     DebugUart_Print(boot_line);
   }
-  DebugUart_Print("\r\n[H750] USART1 PA9(TX)/PA10(RX), 115200 8N1\r\n");
+  DebugUart_Print("\r\n[H750] USART1 PB14(TX)/PB15(RX), 115200 8N1\r\n");
   {
     char clock_text[112];
     (void)snprintf(clock_text, sizeof(clock_text),

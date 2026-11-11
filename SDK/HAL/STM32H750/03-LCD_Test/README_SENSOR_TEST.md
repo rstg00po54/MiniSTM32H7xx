@@ -66,8 +66,8 @@ together if changing the crystal.
 The firmware uses a lightweight, polling USART1 driver (no HAL UART module
 needed; it is absent from this compact example's bundled HAL sources).
 
-- PA9: USART1 TX (connect to USB-TTL adapter RX)
-- PA10: USART1 RX (connect to USB-TTL adapter TX; incoming bytes are echoed)
+- PB14 (AF4): USART1 TX (connect to USB-TTL adapter RX)
+- PB15 (AF4): USART1 RX (connect to USB-TTL adapter TX; incoming bytes are echoed)
 - GND: shared with USB-TTL adapter
 - Terminal: **115200 baud, 8 data bits, no parity, 1 stop bit**, no flow control
 - Voltage: **3.3 V TTL only**, never RS-232 +/- voltage; do not connect adapter
@@ -102,3 +102,8 @@ takes seconds, capture the boot timestamps to identify the slow stage.
 RTC capability is not disabled at the silicon level; this diagnostic
 application simply does not initialize it. The other repository examples
 are unaffected.
+
+PB14/PB15 are shared with OTG_HS DM/DP. If used as USART1 they cannot
+simultaneously be USB OTG_HS data pins. This example initializes USART1 via
+registers, without HAL UART; review UART configuration/dependencies before
+regenerating code from CubeMX.
